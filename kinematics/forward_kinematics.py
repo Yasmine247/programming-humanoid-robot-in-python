@@ -20,6 +20,7 @@
 import os
 import sys
 sys.path.append(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', 'joint_control'))
+import numpy as np
 
 from numpy.matlib import matrix, identity
 
@@ -54,7 +55,19 @@ class ForwardKinematicsAgent(PostureRecognitionAgent):
         '''
         T = identity(4)
         # YOUR CODE HERE
+        if joint_name in ["HeadYaw", "LElbowYaw", "RElbowYaw", "LHipYawPitch", "RHipYawPitch"]:
+            T = np.dot(T, np.array([[np.cos(joint_angle), -np.sin(joint_angle) , 0, 0], [np.sin(joint_angle), np.cos(joint_angle), 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]))
+        elif joint_name.endswith("Pitch"):
+            T = np.dot(T, np.array([[np.cos(joint_angle), 0, np.sin(joint_angle), 0], [0,1,0,0], [-np.sin(joint_angle), 0, np.cos(joint_angle), 0], [0,0,0,1]]))
+        elif joint_name.endswith("Roll"):
+            T = np.dot(T, np.array([[1, 0, 0, 0], [0, np.cos(joint_angle), -np.sin(joint_angle), 0], [0, np.sin(joint_angle), np.cos(joint_angle), 0], [0,0,0,1]]))
 
+
+        for i in self.chains.keys():
+            if joint_name in self.chains[i]:
+                T[0, 3] = self.jLength[i][self.chains[i].index(joint_name)][0]
+                T[1, 3] = self.jLength[i][self.chains[i].index(joint_name)][1]
+                T[2, 3] = self.jLength[i][self.chains[i].index(joint_name)][2]
         return T
 
     def forward_kinematics(self, joints):
@@ -68,7 +81,7 @@ class ForwardKinematicsAgent(PostureRecognitionAgent):
                 angle = joints[joint]
                 Tl = self.local_trans(joint, angle)
                 # YOUR CODE HERE
-
+                T = np.dot(T, Tl)
                 self.transforms[joint] = T
 
 if __name__ == '__main__':
