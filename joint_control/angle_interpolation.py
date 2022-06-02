@@ -33,6 +33,7 @@ class AngleInterpolationAgent(PIDAgent):
                  sync_mode=True):
         super(AngleInterpolationAgent, self).__init__(simspark_ip, simspark_port, teamname, player_id, sync_mode)
         self.keyframes = ([], [], [])
+        self.start_time = -1
 
     def think(self, perception):
         target_joints = self.angle_interpolation(self.keyframes, perception)
@@ -46,10 +47,10 @@ class AngleInterpolationAgent(PIDAgent):
         # check if the Keyframe is empty => ERROR
         if (self.keyframes == ([],[],[])):
             return target_joints
+        else: (names, times, keys) = keyframes
 
-        names, times, keys = keyframes
-        self.start_time = -1
-        #First case
+        
+        #First Time
         if(self.start_time == -1):
             self.start_time = perception.time
         
@@ -60,16 +61,17 @@ class AngleInterpolationAgent(PIDAgent):
         # Iteration over joint names
         for(i, name) in enumerate(names):
             skipped_kf =0
+            joint_time= times[i]
             min_time =0
             max_time=0
-            joint_time= times[i]
+            
             
             # skip joint if it's out of time 
             if (joint_time[-1] < delay):
                 skipped_joints +=1
                 # if we reach the end of the list
                 if (skipped_joints == len (name)):
-                    # then reset parameters
+                    # then reset all parameters
                     self.start_time = -1
                     self.keyframes =([],[],[])
                     continue

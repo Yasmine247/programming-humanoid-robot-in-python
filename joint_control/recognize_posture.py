@@ -14,6 +14,7 @@ from os import listdir
 import pickle
 from angle_interpolation import AngleInterpolationAgent
 from keyframes import hello
+import numpy as np
 
 
 class PostureRecognitionAgent(AngleInterpolationAgent):
@@ -24,7 +25,7 @@ class PostureRecognitionAgent(AngleInterpolationAgent):
                  sync_mode=True):
         super(PostureRecognitionAgent, self).__init__(simspark_ip, simspark_port, teamname, player_id, sync_mode)
         self.posture = 'unknown'
-        self.posture_classifier = None  # LOAD YOUR CLASSIFIER
+        self.posture_classifier = 'robot_pose.pkl'  # LOAD YOUR CLASSIFIER
 
     def think(self, perception):
         self.posture = self.recognize_posture(perception)
@@ -37,22 +38,28 @@ class PostureRecognitionAgent(AngleInterpolationAgent):
         dataset = []
         ROBOT_POSE_DATA_DIR = 'robot_pose_data'
         classes = listdir(ROBOT_POSE_DATA_DIR)
-        features = ['LHipYawPitch', 'LHipRoll', 'LHipPitch', 'LKneePitch', 'RHipYawPitch', 'RHipRoll', 'RHipPitch', 'RKneePitch']
-        clf = pickle.load(open(self.posture_classifier))
         
-
-        for i in features:
-            dataset.append(perception.joint[i])
+       
+        dataset.append(perception.joint['LHipYawPitch'])
+        dataset.append(perception.joint['LHipRoll'])
+        dataset.append(perception.joint['LHipPitch'])
+        dataset.append(perception.joint['LKneePitch'])
+        dataset.append(perception.joint['RHipYawPitch'])
+        dataset.append(perception.joint['RHipRoll'])
+        dataset.append(perception.joint['RHipPitch'])
+        dataset.append(perception.joint['RKneePitch'])
 
             
         #add x and y
         dataset.append(perception.imu[0])
         dataset.append(perception.imu[1])
-
         
-        all_dataset = []
-        all_dataset.append(dataset)
-        predicted = clf.predict(all_dataset)
+        
+        all_dataset = np.array(dataset).reshape(1, -1)
+        classifier = pickle.load(open(self.posture_classifier))
+        classifier.encode('utf-8').strip()
+
+        predicted = classifier.predict(all_dataset)
         posture = classes[predicted[0]]
         return posture
 
