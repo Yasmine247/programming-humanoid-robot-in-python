@@ -1,0 +1,9 @@
+<component name="libraryTable">
+  <library name="joint_control">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/joint_control.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>
