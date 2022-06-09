@@ -56,8 +56,8 @@ class PostureRecognitionAgent(AngleInterpolationAgent):
         
         
         all_dataset = np.array(dataset).reshape(1, -1)
-        classifier = pickle.load(open(self.posture_classifier))
-        classifier.encode('utf-8').strip()
+        classifier = pickle.load(open(self.posture_classifier, "br"))
+        #classifier.encode('utf-8').strip()
 
         predicted = classifier.predict(all_dataset)
         posture = classes[predicted[0]]
